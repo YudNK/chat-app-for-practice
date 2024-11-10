@@ -2,9 +2,10 @@
   "name": "socket-chat-example",
   "version": "0.0.1",
   "description": "my first socket.io\tapp",
-  "main": "index.js",
+  "main": "backend/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node backend/index.js"
   },
   "author": "Yudai Nakakubo",
   "license": "ISC",
