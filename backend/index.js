@@ -23,7 +23,7 @@ if (cluster.isPrimary) {
 
 } else {
     const db = await open({
-        filename: "chat.db",
+        filename: "db/chat.db",
         driver: sqlite3.Database
     });
 
@@ -44,10 +44,28 @@ if (cluster.isPrimary) {
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
 
-    app.get('/', (req, res) => {
-        res.sendFile(join(__dirname, "index.html"));
+    app.use((req, res, next) => {
+        console.log(req.url);
+        next();
     });
 
+
+    app.get('/', (req, res, next) => {
+        try {
+            // sendFileのパスはデフォルトで絶対パスを指定する必要がある
+            // https://expressjs.com/ja/api.html#res.sendFile
+            res.sendFile("index.html", { root: join(__dirname, "../frontend/html")}); 
+
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.use((err, req, res, next) => {
+        console.log("Oops!" + err.stack);
+        console.log(res.url);
+        res.status(500).send("Something Wrong");
+    });
 
     io.on("connection", async (socket) => {
         socket.on("chat message", async (msg, clientOffset, callback) => {
