@@ -49,6 +49,8 @@ if (cluster.isPrimary) {
         next();
     });
 
+    // static directory
+    app.use(express.static(join(__dirname, "../frontend")));
 
     app.get('/', (req, res, next) => {
         try {
