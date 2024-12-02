@@ -2,13 +2,13 @@
   "name": "socket-chat-example",
   "version": "0.0.1",
   "description": "my first socket.io\tapp",
-  "main": "backend/index.js",
+  "main": "backend/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node backend/index.js"
+    "start": "node backend/server.js"
   },
   "author": "Yudai Nakakubo",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@socket.io/cluster-adapter": "^0.2.2",
