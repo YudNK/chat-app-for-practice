@@ -9,7 +9,7 @@ import { availableParallelism } from "node:os";
 import cluster from "node:cluster";
 import { createAdapter, setupPrimary } from "@socket.io/cluster-adapter";
 
-
+import { sendLoginPage, sendChatList, sendChatPage } from "./controller.js";
 
 if (cluster.isPrimary) {
     const numCPUs = availableParallelism();
@@ -44,24 +44,24 @@ if (cluster.isPrimary) {
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
 
+    app.set("views", join(__dirname, "../frontend/views"));
+    app.set("view engine", "ejs");
+
+    app.use(express.urlencoded());
+
     app.use((req, res, next) => {
         console.log(req.url);
         next();
     });
 
     // static directory
-    app.use(express.static(join(__dirname, "../frontend")));
+    app.use(express.static(join(__dirname, "../frontend/static")));
 
-    app.get('/', (req, res, next) => {
-        try {
-            // sendFileのパスはデフォルトで絶対パスを指定する必要がある
-            // https://expressjs.com/ja/api.html#res.sendFile
-            res.sendFile("index.html", { root: join(__dirname, "../frontend/html")}); 
+    // routing
+    app.get("/", sendLoginPage);
 
-        } catch (e) {
-            next(e);
-        }
-    });
+    app.post("/chatlist", sendChatList);
+    app.post("/chat", sendChatPage);
 
     app.use((err, req, res, next) => {
         console.log("Oops!" + err.stack);
