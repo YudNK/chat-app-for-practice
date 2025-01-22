@@ -3,16 +3,23 @@
 
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>chat app login</title>
-  <link href="css/base.css" rel="stylesheet" />
+  <title>chat list</title>
 </head>
 
 <body>
   <div class="page-title">
     chat list: <%= userId %>
   </div>
-  <% chatList.forEach(e => { %>
-    <div class="chatName"><%= e.chatId %></div>
+  <% chatList.forEach(e=> { %>
+    <form action="/chat" method="get">
+      <div class="select-chat">
+        <label for="chat-start">
+          <%= e.chatId %>:
+        </label>
+        <input type="hidden" value="<%= e.chatId %>" name="chatId" />
+        <input type="submit" value="Go chat" id="chat-start" />
+      </div>
+    </form>
   <% }); %>
 </body>
 

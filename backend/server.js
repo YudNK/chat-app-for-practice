@@ -59,9 +59,9 @@ if (cluster.isPrimary) {
 
     // routing
     app.get("/", sendLoginPage);
+    app.get("/chat", sendChatPage);
 
     app.post("/chatlist", sendChatList);
-    app.post("/chat", sendChatPage);
 
     app.use((err, req, res, next) => {
         console.log("Oops!" + err.stack);
