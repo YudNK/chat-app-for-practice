@@ -1,6 +1,3 @@
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { UserInfo } from "./model.js";
 import { validateUserInfo, getChatListInfo } from "./logic.js";
 
@@ -22,10 +19,11 @@ export function sendChatList(req, res, next) {
 
         if (validateUserInfo(userInfo)) {
             const chatListInfo = getChatListInfo(userInfo);
-            console.debug(chatListInfo);
             res.render("chatlist", {
-                userId: chatListInfo.userId, 
-                chatList: chatListInfo.chatList
+                userId: chatListInfo.userId,
+                chatList: chatListInfo.chatList.map(e => {
+                    return { chatId: e.chatId };
+                })
             });
         } else {
             res.render("login", { message: "Duplicate id!" });

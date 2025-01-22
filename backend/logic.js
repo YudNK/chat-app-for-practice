@@ -1,4 +1,4 @@
-import { ChatListInfo } from "./model.js";
+import { ChatInfo, ChatListInfo } from "./model.js";
 
 export function validateUserInfo(userInfo) {
     let result = false;
@@ -11,6 +11,10 @@ export function validateUserInfo(userInfo) {
 export function getChatListInfo(userInfo) {
     const chatListInfo = new ChatListInfo();
     chatListInfo.userId = userInfo.userId;
-    chatListInfo.chatList = ["chat1", "chat2", "chat3"];
+    chatListInfo.chatList = [
+        new ChatInfo("chat1"),
+        new ChatInfo("chat2"),
+        new ChatInfo("chat3"),
+    ];
     return chatListInfo;
 }

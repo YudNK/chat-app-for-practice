@@ -37,56 +37,60 @@ export class ChatListInfo {
     }
 }
 
-export class ChatInfo{
+export class ChatInfo {
     _chatId;
-    _messageList=[];
+    _messageList = [];
 
-    set chatId(value){
+    constructor(chatId) {
+        this._chatId = chatId;
+    }
+
+    set chatId(value) {
         this._chatId = value;
     }
-    get chatId(){
+    get chatId() {
         return this._chatId;
     }
 
-    set messageList(value){
+    set messageList(value) {
         this._messageList = value;
     }
-    get messageList(){
+    get messageList() {
         return this._messageList;
     }
 }
 
-export class MessageInfo{
+export class MessageInfo {
     _messageId;
     _chatId;
     _userId;
     _messageBody;
 
-    set messageId(value){
+    set messageId(value) {
         this._messageId = value;
     }
-    get messageId(){
+    get messageId() {
         return this._messageId;
     }
 
-    set chatId(value){
+    set chatId(value) {
         this._chatId = value;
     }
-    get chatId(){
+    get chatId() {
         return this._chatId;
     }
 
-    set userId(value){
+    set userId(value) {
         this._userId = value;
     }
-    get userId(){
+    get userId() {
         return this._userId;
     }
 
-    set messageBody(value){
+    set messageBody(value) {
         this._messageBody = value;
     }
-    get messageBody(){
+    get messageBody() {
         return this._messageBody;
     }
 }
