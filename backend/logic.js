@@ -1,5 +1,6 @@
 import { ChatInfo, ChatListInfo } from "./model.js";
 
+
 export function validateUserInfo(userInfo) {
     let result = false;
     if (userInfo.userId == "test") {
@@ -7,10 +8,9 @@ export function validateUserInfo(userInfo) {
     }
     return result;
 }
-
-export function getChatListInfo(userInfo) {
+export function getChatListInfo(userId) {
     const chatListInfo = new ChatListInfo();
-    chatListInfo.userId = userInfo.userId;
+    chatListInfo.userId = userId;
     chatListInfo.chatList = [
         new ChatInfo("chat1"),
         new ChatInfo("chat2"),

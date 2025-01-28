@@ -8,8 +8,16 @@ import { open } from "sqlite";
 import { availableParallelism } from "node:os";
 import cluster from "node:cluster";
 import { createAdapter, setupPrimary } from "@socket.io/cluster-adapter";
+import cookieParser from "cookie-parser";
 
-import { sendLoginPage, sendChatList, sendChatPage } from "./controller.js";
+import {
+    configSession,
+    authUser,
+    sendSignInPage,
+    validateUser,
+    sendChatPage,
+    sendChatListPage
+} from "./controller.js";
 
 if (cluster.isPrimary) {
     const numCPUs = availableParallelism();
@@ -44,31 +52,41 @@ if (cluster.isPrimary) {
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
 
+    // template engine
     app.set("views", join(__dirname, "../frontend/views"));
     app.set("view engine", "ejs");
 
+    // リクエストの前処理
     app.use(express.urlencoded());
+    app.use(cookieParser());
 
+    // logger
     app.use((req, res, next) => {
         console.log(req.url);
+        console.log(req.cookies);
         next();
     });
 
     // static directory
     app.use(express.static(join(__dirname, "../frontend/static")));
+    // seeion id 発行
+    app.use(configSession);
 
     // routing
-    app.get("/", sendLoginPage);
-    app.get("/chat", sendChatPage);
+    app.get("/", sendSignInPage, sendChatListPage);
+    app.post("/signin", validateUser, sendChatListPage);
 
-    app.post("/chatlist", sendChatList);
+    app.get("/chatlist", authUser, sendChatListPage);
+    app.get("/chat", authUser, sendChatPage);
 
+    // error handling 
     app.use((err, req, res, next) => {
         console.log("Oops!" + err.stack);
         console.log(res.url);
         res.status(500).send("Something Wrong");
     });
 
+    // socket.io setting
     io.on("connection", async (socket) => {
         socket.on("chat message", async (msg, clientOffset, callback) => {
             let result;
@@ -106,6 +124,7 @@ if (cluster.isPrimary) {
 
     });
 
+    // server start
     const port = process.env.PORT;
     server.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
