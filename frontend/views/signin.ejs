@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>chat app login</title>
+</head>
+
+<body>
+  <div class="page-title">
+    login page: "<%= message %>"
+  </div>
+  <form action="/signin" method="post">
+    <div class="form-id">
+      <label for="id">id: </label>
+      <input type="text" name="userId" id="id" required />
+    </div>
+    <div class="form-password">
+      <label for="password">password (8 characters minimum): </label>
+      <input type="password" name="userPassword" id="password" minlength="8" required />
+    </div>
+    <div class="form-submit">
+      <input type="submit" value="chat start!"/>
+    </div>
+  </form>
+</body>
+
+</html>
