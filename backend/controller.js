@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { UserInfo } from "./model.js";
+import { UserInfo } from "./model/dto.js";
 import { validateUserInfo, getChatListInfo } from "./logic.js";
 
 // map for cache. key:session id, value: user id 

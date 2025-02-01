@@ -3,13 +3,12 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Server } from "socket.io";
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
 import { availableParallelism } from "node:os";
 import cluster from "node:cluster";
 import { createAdapter, setupPrimary } from "@socket.io/cluster-adapter";
 import cookieParser from "cookie-parser";
 
+import { setting } from "./setting.js";
 import {
     configSession,
     authUser,
@@ -30,18 +29,8 @@ if (cluster.isPrimary) {
     setupPrimary();
 
 } else {
-    const db = await open({
-        filename: "db/chat.db",
-        driver: sqlite3.Database
-    });
 
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            client_offset TEXT UNIQUE,
-            content TEXT
-        );
-    `);
+    await setting();
 
     const app = express();
     const server = createServer(app);

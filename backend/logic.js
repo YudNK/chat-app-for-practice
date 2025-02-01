@@ -1,4 +1,4 @@
-import { ChatInfo, ChatListInfo } from "./model.js";
+import { ChatInfo, ChatListInfo } from "./model/dto.js";
 
 
 export function validateUserInfo(userInfo) {
