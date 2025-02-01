@@ -1,8 +1,7 @@
 *~
 .*
 node_modules/
-db/*
-doc_wip
+db/
 
 !.gitignore
 !.gitkeep
