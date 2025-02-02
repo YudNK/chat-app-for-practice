@@ -1,4 +1,4 @@
-chat application for practice.  
+chat application for my practice.  
 referance: socket.io tutorial https://socket.io/docs/v4/tutorial/introduction  
   
 socket.ioのチュートリアルで作成するチャットアプリをベースに色々な機能を追加実装してみる.  
