@@ -2,6 +2,7 @@
 export class UserInfo {
     _userId;
     _userPassword;
+    _salt;
 
     set userId(value) {
         this._userId = value;
@@ -16,11 +17,18 @@ export class UserInfo {
     get userPassword() {
         return this._userPassword;
     }
+
+    set salt(value) {
+        this._salt = value;
+    }
+    get salt() {
+        return this._salt;
+    }
 }
 
 export class ChatListInfo {
     _userId;
-    _chatList = [];
+    _chatId;
 
     set userId(value) {
         this._userId = value;
@@ -29,17 +37,17 @@ export class ChatListInfo {
         return this._userId;
     }
 
-    set chatList(value) {
-        this._chatList = value;
+    set chatId(value) {
+        this._chatId = value;
     }
-    get chatList() {
-        return this._chatList;
+    get chatId() {
+        return this._chatId;
     }
 }
 
 export class ChatInfo {
     _chatId;
-    _messageList = [];
+    _messageId;
 
     constructor(chatId) {
         this._chatId = chatId;
@@ -52,11 +60,11 @@ export class ChatInfo {
         return this._chatId;
     }
 
-    set messageList(value) {
-        this._messageList = value;
+    set messageId(value) {
+        this._messageId = value;
     }
-    get messageList() {
-        return this._messageList;
+    get messageId() {
+        return this._messageId;
     }
 }
 
