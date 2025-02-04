@@ -34,7 +34,8 @@ export const userTableDao = {
     insertUserInfo: async (userInfo) => {
         try {
             await db.run(crudUserTableQuery.insertUserTable,
-                userInfo.userId, userInfo.userPassword, userInfo.salt,
+                // コールバックを呼ぶ場合は配列で渡す必要がある.issue#116
+                [userInfo.userId, userInfo.genHashedPassword(), userInfo.salt],
                 // arrow functionだとthisでstatementオブジェクトを参照できない
                 function (err) {
                     if (err) throw new Error(err);
@@ -49,14 +50,16 @@ export const userTableDao = {
     },
     selectUserInfo: async (userInfo) => {
         try {
-            const result = new UserInfo();
+            const result = [];
             await db.each(crudUserTableQuery.selectUserTable,
-                userInfo.userId,
+                [userInfo.userId],
                 function (err, rows) {
                     if (!err) {
-                        result.userId = rows.user_id;
-                        result.userPassword = rows.user_password;
-                        result.salt = rows.salt;
+                        const elem = new UserInfo();
+                        elem.userId = rows.user_id;
+                        elem.userPassword = rows.user_password;
+                        elem.salt = rows.salt;
+                        result.push(elem);
                     } else {
                         throw new Error(err);
                     }
@@ -73,7 +76,7 @@ export const userTableDao = {
     updateUserInfo: async (userInfo) => {
         try {
             await db.run(crudUserTableQuery.updateUserTable,
-                userInfo.userPassword, userInfo.salt, userInfo.userId,
+                [userInfo.userPassword, userInfo.salt, userInfo.userId],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -87,7 +90,7 @@ export const userTableDao = {
     deleteUserInfo: async (userInfo) => {
         try {
             await db.run(crudUserTableQuery.deleteUserTable,
-                userInfo.userId,
+                [userInfo.userId],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -103,7 +106,7 @@ export const chatListTableDao = {
     insertChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.insertChatListTable,
-                chatListInfo.userId, chatListInfo.chatId,
+                [chatListInfo.userId, chatListInfo.chatId],
                 // arrow functionだとthisでstatementオブジェクトを参照できない
                 function (err) {
                     if (err) throw new Error(err);
@@ -120,7 +123,7 @@ export const chatListTableDao = {
         try {
             const result = [];
             await db.each(crudChatListTableQuery.selectChatListTable,
-                chatListInfo.userId,
+                [chatListInfo.userId],
                 function (err, rows) {
                     if (!err) {
                         const elem = new ChatListInfo();
@@ -143,7 +146,7 @@ export const chatListTableDao = {
     updateChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.updateChatListTable,
-                chatListInfo.chatId, chatListInfo.userId,
+                [chatListInfo.chatId, chatListInfo.userId],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -157,7 +160,7 @@ export const chatListTableDao = {
     deleteChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.deleteChatListTable,
-                chatListInfo.userId, chatListInfo.chatId,
+                [chatListInfo.userId, chatListInfo.chatId],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -173,7 +176,7 @@ export const chatTableDao = {
     insertChatInfo: async (chatInfo) => {
         try {
             await db.run(crudChatTableQuery.insertChatTable,
-                chatInfo.chatId, chatInfo.messageId,
+                [chatInfo.chatId, chatInfo.messageId],
                 // arrow functionだとthisでstatementオブジェクトを参照できない
                 function (err) {
                     if (err) throw new Error(err);
@@ -190,7 +193,7 @@ export const chatTableDao = {
         try {
             const result = [];
             await db.each(crudChatTableQuery.selectChatTable,
-                chatInfo.chatId,
+                [chatInfo.chatId],
                 function (err, rows) {
                     if (!err) {
                         const elem = new ChatInfo();
@@ -213,7 +216,7 @@ export const chatTableDao = {
     updateChatInfo: async (chatInfo) => {
         try {
             await db.run(crudChatTableQuery.updateChatTable,
-                chatInfo.messageId, chatInfo.chatId,
+                [chatInfo.messageId, chatInfo.chatId],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -227,7 +230,7 @@ export const chatTableDao = {
     deleteChatInfo: async (chatInfo) => {
         try {
             await db.run(crudChatTableQuery.deleteChatTable,
-                chatInfo.chatId, chatInfo.messageId,
+                [chatInfo.chatId, chatInfo.messageId],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -243,10 +246,12 @@ export const messageTableDao = {
     insertMessageInfo: async (messageInfo) => {
         try {
             await db.run(crudMessageTableQuery.insertMessageTable,
-                messageInfo.messageId,
-                messageInfo.chatId,
-                messageInfo.userId,
-                messageInfo.messageBody,
+                [
+                    messageInfo.messageId,
+                    messageInfo.chatId,
+                    messageInfo.userId,
+                    messageInfo.messageBody
+                ],
                 // arrow functionだとthisでstatementオブジェクトを参照できない
                 function (err) {
                     if (err) throw new Error(err);
@@ -263,7 +268,7 @@ export const messageTableDao = {
         try {
             const result = [];
             await db.each(crudMessageTableQuery.selectMessageTable,
-                messageInfo.messageId,
+                [messageInfo.messageId],
                 function (err, rows) {
                     if (!err) {
                         const elem = new MessageInfo();
@@ -288,10 +293,12 @@ export const messageTableDao = {
     updateMessageInfo: async (messageInfo) => {
         try {
             await db.run(crudMessageTableQuery.updateMessageTable,
-                messageInfo.chatId,
-                messageInfo.userId,
-                messageInfo.messageBody,
-                messageInfo.messageId,
+                [
+                    messageInfo.chatId,
+                    messageInfo.userId,
+                    messageInfo.messageBody,
+                    messageInfo.messageId
+                ],
                 function (err) {
                     if (err) throw new Error(err);
                 }
@@ -305,7 +312,7 @@ export const messageTableDao = {
     deleteMessageInfo: async (messageInfo) => {
         try {
             await db.run(crudMessageTableQuery.deleteMessageTable,
-                messageInfo.messageId,
+                [messageInfo.messageId],
                 function (err) {
                     if (err) throw new Error(err);
                 }

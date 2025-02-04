@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 // DTOの定義
 export class UserInfo {
     _userId;
@@ -23,6 +25,13 @@ export class UserInfo {
     }
     get salt() {
         return this._salt;
+    }
+
+    genHashedPassword() {
+        const hash = createHash("sha256");
+        hash.update(this._userPassword);
+        hash.update(this._salt);
+        return hash.digest("base64");
     }
 }
 

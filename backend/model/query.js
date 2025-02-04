@@ -44,7 +44,7 @@ export const crudUserTableQuery = {
             user_id,
             user_password,
             salt
-        ) values (
+        ) VALUES (
             ?,
             ?,
             ?
