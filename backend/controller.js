@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 
 import { UserInfo } from "./model/dto.js";
-import { validateUserInfo, getChatListInfo } from "./logic.js";
+import {
+    createUserInfo,
+    validateUserInfo,
+    getChatListInfo
+} from "./logic.js";
 
 // map for cache. key:session id, value: user id 
 const sessionIdMap = new Map();
@@ -54,13 +58,42 @@ export function sendSignInPage(req, res, next) {
     }
 }
 
-export function validateUser(req, res, next) {
+export async function createUser(req, res, next) {
+    try {
+        const userInfo = new UserInfo();
+        userInfo.userId = req.body.userId;
+        userInfo.userPassword = req.body.userPassword;
+        if (await createUserInfo(userInfo)) {
+            // regenerate session id 
+            sessionIdMap.delete(currentSessionId);
+            // clear session id in cookies.
+            res.clearCookie("sessionId");
+            // regenerate session id
+            const newSessionId = randomUUID();
+            // set map (set user id to value before authentication.)
+            sessionIdMap.set(newSessionId, userInfo.userId);
+            // set response
+            res.cookie("sessionId", newSessionId);
+
+            currentSessionId = newSessionId;
+
+            next();
+        } else {
+            res.render("signin", { message: "The id is already used." });
+        }
+
+    } catch (e) {
+        next(e);
+    }
+}
+
+export async function validateUser(req, res, next) {
     try {
         // authentication
         const userInfo = new UserInfo();
         userInfo.userId = req.body.userId;
         userInfo.userPassword = req.body.userPassword;
-        if (validateUserInfo(userInfo)) {
+        if (await validateUserInfo(userInfo)) {
             // regenerate session id 
             sessionIdMap.delete(currentSessionId);
             // clear session id in cookies.
@@ -119,4 +152,33 @@ export function sendChatPage(req, res, next) {
     } catch (e) {
         next(e);
     }
+}
+
+export function signoutUser(req, res, next) {
+    try {
+        // sessionのvalueをnullにする
+        sessionIdMap.set(currentSessionId, null);
+        next();
+    } catch (e) {
+        next(e);
+    }
+}
+
+// for socket.io
+export async function action4ChatMessage(msg, clientOffset, callback) {
+    try {
+        let result;
+        result = await db.run("INSERT INTO messages (content, client_offset) VALUES (?,?)", msg, clientOffset);
+    } catch (e) {
+        if (e.errno === 19) {
+            callback();
+            console.log(e)
+        } else {
+
+        }
+        return;
+    }
+    io.emit("chat message", msg, result.lastID);
+    callback();
+
 }

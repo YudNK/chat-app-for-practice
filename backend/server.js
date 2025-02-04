@@ -13,15 +13,19 @@ import {
     configSession,
     authUser,
     sendSignInPage,
+    createUser,
     validateUser,
     sendChatPage,
-    sendChatListPage
+    sendChatListPage,
+    signoutUser,
+    action4ChatMessage
 } from "./controller.js";
 
 if (cluster.isPrimary) {
     const numCPUs = availableParallelism();
     console.log(numCPUs);
-    for (let i = 0; i < numCPUs; i++) {
+    // for (let i = 0; i < numCPUs; i++) {
+    for (let i = 0; i < 1; i++) {
         cluster.fork({
             PORT: 3000 + i
         });
@@ -63,10 +67,12 @@ if (cluster.isPrimary) {
 
     // routing
     app.get("/", sendSignInPage, sendChatListPage);
+    app.post("/createuser", createUser, sendChatListPage);
     app.post("/signin", validateUser, sendChatListPage);
 
     app.get("/chatlist", authUser, sendChatListPage);
     app.get("/chat", authUser, sendChatPage);
+    app.get("/signout", authUser, signoutUser, sendSignInPage);
 
     // error handling 
     app.use((err, req, res, next) => {
@@ -77,22 +83,6 @@ if (cluster.isPrimary) {
 
     // socket.io setting
     io.on("connection", async (socket) => {
-        socket.on("chat message", async (msg, clientOffset, callback) => {
-            let result;
-            try {
-                result = await db.run("INSERT INTO messages (content, client_offset) VALUES (?,?)", msg, clientOffset);
-            } catch (e) {
-                if (e.errno === 19) {
-                    callback();
-                    console.log(e)
-                } else {
-
-                }
-                return;
-            }
-            io.emit("chat message", msg, result.lastID);
-            callback();
-        })
 
         if (!socket.recovered) {
             try {
@@ -107,6 +97,7 @@ if (cluster.isPrimary) {
             }
         }
 
+        socket.on("chat message", action4ChatMessage); 
         socket.on("disconnect", () => {
             console.log("user disconnected.");
         });

@@ -10,6 +10,9 @@
   <div class="page-title">
     chat list: <%= userId %>
   </div>
+  <form action="/signout" method="get">
+    <input type="submit" value="sign out" id="sign-out" />
+  </form>
   <% chatList.forEach(e=> { %>
     <form action="/chat" method="get">
       <div class="select-chat">
@@ -20,7 +23,7 @@
         <input type="submit" value="Go chat" id="chat-start" />
       </div>
     </form>
-  <% }); %>
+    <% }); %>
 </body>
 
 </html>
