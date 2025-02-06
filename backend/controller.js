@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 
-import { UserInfo } from "./model/dto.js";
 import {
-    createUserInfo,
-    validateUserInfo,
-    getChatListInfo
+    createUser,
+    verifyUser,
+    searchUserId,
+    createChatList,
+    readChatList,
+    updateChatList,
 } from "./logic.js";
 
 // map for cache. key:session id, value: user id 
@@ -58,12 +60,11 @@ export function sendSignInPage(req, res, next) {
     }
 }
 
-export async function createUser(req, res, next) {
+export async function registUser(req, res, next) {
     try {
-        const userInfo = new UserInfo();
-        userInfo.userId = req.body.userId;
-        userInfo.userPassword = req.body.userPassword;
-        if (await createUserInfo(userInfo)) {
+        const userId = req.body.userId;
+        const userPassword = req.body.userPassword;
+        if (await createUser(userId, userPassword)) {
             // regenerate session id 
             sessionIdMap.delete(currentSessionId);
             // clear session id in cookies.
@@ -71,7 +72,7 @@ export async function createUser(req, res, next) {
             // regenerate session id
             const newSessionId = randomUUID();
             // set map (set user id to value before authentication.)
-            sessionIdMap.set(newSessionId, userInfo.userId);
+            sessionIdMap.set(newSessionId, userId);
             // set response
             res.cookie("sessionId", newSessionId);
 
@@ -90,10 +91,9 @@ export async function createUser(req, res, next) {
 export async function validateUser(req, res, next) {
     try {
         // authentication
-        const userInfo = new UserInfo();
-        userInfo.userId = req.body.userId;
-        userInfo.userPassword = req.body.userPassword;
-        if (await validateUserInfo(userInfo)) {
+        const userId = req.body.userId;
+        const userPassword = req.body.userPassword;
+        if (await verifyUser(userId, userPassword)) {
             // regenerate session id 
             sessionIdMap.delete(currentSessionId);
             // clear session id in cookies.
@@ -101,7 +101,7 @@ export async function validateUser(req, res, next) {
             // regenerate session id
             const newSessionId = randomUUID();
             // set map (set user id to value before authentication.)
-            sessionIdMap.set(newSessionId, userInfo.userId);
+            sessionIdMap.set(newSessionId, userId);
             // set response
             res.cookie("sessionId", newSessionId);
 
@@ -130,14 +130,18 @@ export function authUser(req, res, next) {
 
 }
 
-export function sendChatListPage(req, res, next) {
+export async function sendChatListPage(req, res, next) {
     try {
         const userId = sessionIdMap.get(currentSessionId);
-        const chatListInfo = getChatListInfo(userId);
+        const chatListInfoArr = await readChatList(userId);
         res.render("chatlist", {
-            userId: chatListInfo.userId,
-            chatList: chatListInfo.chatList.map(e => {
-                return { chatId: e.chatId };
+            userId: userId,
+            chatList: chatListInfoArr.map(e => {
+                return {
+                    chatId: e.chatId,
+                    chatName: e.chatName,
+                    joinFlg: e.joinFlg
+                };
             })
         });
 
@@ -154,11 +158,74 @@ export function sendChatPage(req, res, next) {
     }
 }
 
+export async function joinChat(req, res, next) {
+    try {
+        const userId = sessionIdMap.get(currentSessionId);
+        const chatId = req.body.chatId;
+        await updateChatList(userId, chatId, 1);
+
+        next();
+    } catch (e) {
+        next(e);
+    }
+}
+
+export function sendCreateChatPage(req, res, next) {
+    try {
+        res.render("chatcreate");
+    } catch (e) {
+        next(e);
+    }
+}
+
 export function signoutUser(req, res, next) {
     try {
         // sessionのvalueをnullにする
         sessionIdMap.set(currentSessionId, null);
         next();
+    } catch (e) {
+        next(e);
+    }
+}
+
+// for fetch api
+export async function searchUser(req, res, next) {
+    try {
+        const userId = req.query.userId;
+        let result = [];
+        let flg = false;
+        if (userId == sessionIdMap.get(currentSessionId)) {
+            result.push("it's you.");
+        } else {
+            result = await searchUserId(userId);
+            if (result.length == 0) {
+                result.push("no such user.");
+            } else {
+                flg = true;
+            }
+        }
+
+        res.json({
+            exist: flg,
+            user: result[0]
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+export async function registChat(req, res, next) {
+    try {
+        const currentUserId = sessionIdMap.get(currentSessionId);
+        const userIdArr = req.body.userIdArr;
+        const chatName = req.body.chatName;
+        
+        userIdArr.push(currentUserId);
+
+        await createChatList(currentUserId, userIdArr, chatName);
+        // OK
+        res.sendStatus(200);
+
     } catch (e) {
         next(e);
     }

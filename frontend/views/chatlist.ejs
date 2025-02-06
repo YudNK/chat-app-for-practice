@@ -7,23 +7,39 @@
 </head>
 
 <body>
-  <div class="page-title">
-    chat list: <%= userId %>
-  </div>
   <form action="/signout" method="get">
     <input type="submit" value="sign out" id="sign-out" />
   </form>
-  <% chatList.forEach(e=> { %>
+  <div class="page-title">
+    chat list: <%= userId %>
+  </div>
+  <form action="/createchat" method="get">
+    <input type="submit" value="create chat" id="create-chat" />
+  </form>
+  <div>[joined chats]</div>
+  <% chatList.filter(e => e.joinFlg).forEach(e => { %>
     <form action="/chat" method="get">
       <div class="select-chat">
         <label for="chat-start">
-          <%= e.chatId %>:
+          <%= e.chatName%>:
         </label>
         <input type="hidden" value="<%= e.chatId %>" name="chatId" />
         <input type="submit" value="Go chat" id="chat-start" />
       </div>
     </form>
-    <% }); %>
+  <% }); %>
+  <div>[invited chats]</div>
+  <% chatList.filter(e => !e.joinFlg).forEach(e => { %>
+    <form action="/joinchat" method="post">
+      <div class="select-chat">
+        <label for="chat-start">
+          <%= e.chatName%>:
+        </label>
+        <input type="hidden" value="<%= e.chatId %>" name="chatId" />
+        <input type="submit" value="Join chat" id="chat-join" />
+      </div>
+    </form>
+  <% }); %>
 </body>
 
 </html>

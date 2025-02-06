@@ -13,11 +13,15 @@ import {
     configSession,
     authUser,
     sendSignInPage,
-    createUser,
+    registUser,
     validateUser,
     sendChatPage,
     sendChatListPage,
+    joinChat,
+    sendCreateChatPage,
+    registChat,
     signoutUser,
+    searchUser,
     action4ChatMessage
 } from "./controller.js";
 
@@ -51,6 +55,7 @@ if (cluster.isPrimary) {
 
     // リクエストの前処理
     app.use(express.urlencoded());
+    app.use(express.json());
     app.use(cookieParser());
 
     // logger
@@ -67,12 +72,19 @@ if (cluster.isPrimary) {
 
     // routing
     app.get("/", sendSignInPage, sendChatListPage);
-    app.post("/createuser", createUser, sendChatListPage);
+    app.post("/createuser", registUser, sendChatListPage);
     app.post("/signin", validateUser, sendChatListPage);
 
+    // need athentication route
     app.get("/chatlist", authUser, sendChatListPage);
     app.get("/chat", authUser, sendChatPage);
+    app.post("/joinchat", authUser, joinChat, sendChatListPage);
+    app.get("/createchat", authUser, sendCreateChatPage);
     app.get("/signout", authUser, signoutUser, sendSignInPage);
+
+    // for fetch api
+    app.get("/fetch/searchuser", authUser, searchUser);
+    app.post("/fetch/registchat", authUser, registChat);
 
     // error handling 
     app.use((err, req, res, next) => {
@@ -97,7 +109,7 @@ if (cluster.isPrimary) {
             }
         }
 
-        socket.on("chat message", action4ChatMessage); 
+        socket.on("chat message", action4ChatMessage);
         socket.on("disconnect", () => {
             console.log("user disconnected.");
         });

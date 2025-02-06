@@ -14,6 +14,8 @@ export const createTableQuery = {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT NOT NULL,
             chat_id TEXT NOT NULL,
+            chat_name TEXT,
+            join_flg INTEGER,
             UNIQUE(user_id, chat_id)
         );
     `,
@@ -85,8 +87,12 @@ export const crudChatListTableQuery = {
     insertChatListTable: `
         INSERT INTO ChatList (
             user_id,
-            chat_id
+            chat_id,
+            chat_name,
+            join_flg
         ) values (
+            ?,
+            ?,
             ?,
             ?
         ); 
@@ -94,7 +100,9 @@ export const crudChatListTableQuery = {
     selectChatListTable: `
         SELECT
             user_id,
-            chat_id
+            chat_id,
+            chat_name,
+            join_flg
         FROM ChatList
         WHERE
             user_id = ?
@@ -103,12 +111,13 @@ export const crudChatListTableQuery = {
     updateChatListTable: `
         UPDATE ChatList
         SET (
-            chat_id
+            join_flg
         ) = (
             ?
         )
         WHERE
             user_id = ?
+        AND chat_id = ?
         ;
     `,
     deleteChatListTable: `

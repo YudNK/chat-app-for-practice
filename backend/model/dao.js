@@ -106,7 +106,12 @@ export const chatListTableDao = {
     insertChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.insertChatListTable,
-                [chatListInfo.userId, chatListInfo.chatId],
+                [
+                    chatListInfo.userId,
+                    chatListInfo.chatId,
+                    chatListInfo.chatName,
+                    chatListInfo.joinFlg
+                ],
                 // arrow functionだとthisでstatementオブジェクトを参照できない
                 function (err) {
                     if (err) throw new Error(err);
@@ -129,6 +134,8 @@ export const chatListTableDao = {
                         const elem = new ChatListInfo();
                         elem.userId = rows.user_id;
                         elem.chatId = rows.chat_id;
+                        elem.chatName = rows.chat_name;
+                        elem.joinFlg = rows.join_flg;
                         result.push(elem);
                     } else {
                         throw new Error(err);
@@ -146,7 +153,7 @@ export const chatListTableDao = {
     updateChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.updateChatListTable,
-                [chatListInfo.chatId, chatListInfo.userId],
+                [chatListInfo.joinFlg, chatListInfo.userId, chatListInfo.chatId],
                 function (err) {
                     if (err) throw new Error(err);
                 }

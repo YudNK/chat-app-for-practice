@@ -38,6 +38,8 @@ export class UserInfo {
 export class ChatListInfo {
     _userId;
     _chatId;
+    _chatName;
+    _joinFlg = '0'; // sqliteにはbool型がないため
 
     set userId(value) {
         this._userId = value;
@@ -51,6 +53,20 @@ export class ChatListInfo {
     }
     get chatId() {
         return this._chatId;
+    }
+
+    set chatName(value) {
+        this._chatName = value;
+    }
+    get chatName() {
+        return this._chatName;
+    }
+
+    set joinFlg(value) {
+        this._joinFlg = value;
+    }
+    get joinFlg() {
+        return this._joinFlg;
     }
 }
 
