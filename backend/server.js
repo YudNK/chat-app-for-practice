@@ -7,6 +7,7 @@ import { availableParallelism } from "node:os";
 import cluster from "node:cluster";
 import { createAdapter, setupPrimary } from "@socket.io/cluster-adapter";
 import cookieParser from "cookie-parser";
+import cookie from "cookie";
 
 import { setting } from "./setting.js";
 import {
@@ -22,7 +23,9 @@ import {
     registChat,
     signoutUser,
     searchUser,
-    action4ChatMessage
+    recoveryMessages,
+    registMessage,
+    authSocketUser
 } from "./controller.js";
 
 if (cluster.isPrimary) {
@@ -94,22 +97,50 @@ if (cluster.isPrimary) {
     });
 
     // socket.io setting
+    // authentication
+    io.use((socket, next) => {
+        const cookies = cookie.parse(socket.request.headers.cookie || "");
+        const sessionId = cookies.sessionId;
+        authSocketUser(sessionId, next);
+    });
+
     io.on("connection", async (socket) => {
+        console.log("user connected");
+        const cookies = cookie.parse(socket.request.headers.cookie || "");
+        const sessionId = cookies.sessionId;
+        const chatId = cookies.chatId;
+        let serverOffset = socket.handshake.auth.serverOffset;
+
+
+        // socketをchatIdのroomにjoin
+        socket.join(chatId);
 
         if (!socket.recovered) {
             try {
-                await db.each("SELECT id, content FROM messages WHERE id > ?",
-                    [socket.handshake.auth.serverOffset || 0], // undefined対策?
-                    (_err, row) => {
-                        socket.emit("chat message", row.content, row.id);
-                    }
-                )
+                const messages = await recoveryMessages(chatId, serverOffset);
+                for (const msgInfo of messages) {
+                    // 今接続しているsocketにemit 
+                    socket.emit("chat message", msgInfo.id, msgInfo.userId, msgInfo.messageBody);
+                }
             } catch (e) {
-                console.log("failed recovery.");
+                console.log(e.message);
             }
         }
 
-        socket.on("chat message", action4ChatMessage);
+        socket.on("chat message", async (msg, callback) => {
+            try {
+                const [lastId, userId] = await registMessage(msg, sessionId, chatId);
+                // 自分向け
+                socket.emit("chat message", lastId, userId, msg);
+                // 他メンバー向け
+                socket.to(chatId).emit("chat message", lastId, userId, msg);
+
+                callback("ok");
+            } catch (e) {
+                callback("ng");
+            }
+        });
+
         socket.on("disconnect", () => {
             console.log("user disconnected.");
         });

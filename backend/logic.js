@@ -8,6 +8,7 @@ import {
 import {
     userTableDao,
     chatListTableDao,
+    chatTableDao,
 } from "./model/dao.js";
 
 
@@ -89,4 +90,25 @@ export async function updateChatList(userId, chatId, joinFlg) {
     chatListInfo.chatId = chatId;
     chatListInfo.joinFlg = joinFlg;
     await chatListTableDao.updateChatListInfo(chatListInfo);
+}
+
+export async function readChatMessages(chatId, id) {
+    const chatInfo = new ChatInfo();
+    chatInfo.id = id;
+    chatInfo.chatId = chatId;
+    const chatInfoArr = await chatTableDao.selectChatInfo(chatInfo);
+
+    return chatInfoArr;
+}
+
+export async function createChatMessage(chatId, userId, messageBody) {
+    const chatInfo = new ChatInfo();
+    chatInfo.messageId = randomUUID();
+    chatInfo.chatId = chatId;
+    chatInfo.userId = userId;
+    chatInfo.messageBody = messageBody;
+    const lastId = await chatTableDao.insertChatInfo(chatInfo);
+
+    return lastId;
+
 }

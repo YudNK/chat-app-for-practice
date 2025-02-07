@@ -7,6 +7,8 @@ import {
     createChatList,
     readChatList,
     updateChatList,
+    readChatMessages,
+    createChatMessage,
 } from "./logic.js";
 
 // map for cache. key:session id, value: user id 
@@ -152,6 +154,7 @@ export async function sendChatListPage(req, res, next) {
 
 export function sendChatPage(req, res, next) {
     try {
+        res.cookie("chatId", req.query.chatId);
         res.render("chat");
     } catch (e) {
         next(e);
@@ -219,7 +222,7 @@ export async function registChat(req, res, next) {
         const currentUserId = sessionIdMap.get(currentSessionId);
         const userIdArr = req.body.userIdArr;
         const chatName = req.body.chatName;
-        
+
         userIdArr.push(currentUserId);
 
         await createChatList(currentUserId, userIdArr, chatName);
@@ -232,20 +235,30 @@ export async function registChat(req, res, next) {
 }
 
 // for socket.io
-export async function action4ChatMessage(msg, clientOffset, callback) {
-    try {
-        let result;
-        result = await db.run("INSERT INTO messages (content, client_offset) VALUES (?,?)", msg, clientOffset);
-    } catch (e) {
-        if (e.errno === 19) {
-            callback();
-            console.log(e)
-        } else {
-
-        }
-        return;
+export function authSocketUser(sessionId, next) {
+    if (sessionIdMap.get(sessionId)) {
+        console.log("valid user.");
+        next();
+    } else {
+        next(new Error("invalid user"));
     }
-    io.emit("chat message", msg, result.lastID);
-    callback();
+}
 
+export async function recoveryMessages(chatId, serverOffset) {
+    try {
+        const messages = await readChatMessages(chatId, serverOffset);
+        return messages;
+    } catch (e) {
+        throw new Error(e.message);
+    }
+}
+
+export async function registMessage(msg, sessionId, chatId) {
+    const userId = sessionIdMap.get(sessionId);
+    try {
+        const lastId = await createChatMessage(chatId, userId, msg);
+        return [lastId, userId];
+    } catch (e) {
+        throw new Error(e.message);
+    }
 }
