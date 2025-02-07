@@ -5,14 +5,12 @@ import {
     UserInfo,
     ChatListInfo,
     ChatInfo,
-    MessageInfo
 } from "./dto.js";
 import {
     createTableQuery,
     crudUserTableQuery,
     crudChatListTableQuery,
     crudChatTableQuery,
-    crudMessageTableQuery
 } from "./query.js";
 
 
@@ -33,15 +31,12 @@ export async function setUpDB() {
 export const userTableDao = {
     insertUserInfo: async (userInfo) => {
         try {
-            await db.run(crudUserTableQuery.insertUserTable,
+            const result = await db.run(crudUserTableQuery.insertUserTable,
                 // コールバックを呼ぶ場合は配列で渡す必要がある.issue#116
-                [userInfo.userId, userInfo.genHashedPassword(), userInfo.salt],
-                // arrow functionだとthisでstatementオブジェクトを参照できない
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [userInfo.userId, userInfo.genHashedPassword(), userInfo.salt]
             );
 
+            return result.lastID;
         } catch (e) {
             // スタックトレースにより情報が伝搬しないことを意識
             console.log(e.message);
@@ -76,10 +71,7 @@ export const userTableDao = {
     updateUserInfo: async (userInfo) => {
         try {
             await db.run(crudUserTableQuery.updateUserTable,
-                [userInfo.userPassword, userInfo.salt, userInfo.userId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [userInfo.userPassword, userInfo.salt, userInfo.userId]
             );
 
         } catch (e) {
@@ -90,10 +82,7 @@ export const userTableDao = {
     deleteUserInfo: async (userInfo) => {
         try {
             await db.run(crudUserTableQuery.deleteUserTable,
-                [userInfo.userId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [userInfo.userId]
             );
         } catch (e) {
             console.log(e.message);
@@ -105,19 +94,16 @@ export const userTableDao = {
 export const chatListTableDao = {
     insertChatListInfo: async (chatListInfo) => {
         try {
-            await db.run(crudChatListTableQuery.insertChatListTable,
+            const result = await db.run(crudChatListTableQuery.insertChatListTable,
                 [
                     chatListInfo.userId,
                     chatListInfo.chatId,
                     chatListInfo.chatName,
                     chatListInfo.joinFlg
-                ],
-                // arrow functionだとthisでstatementオブジェクトを参照できない
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                ]
             );
 
+            return result.lastID;
         } catch (e) {
             // スタックトレースにより情報が伝搬しないことを意識
             console.log(e.message);
@@ -153,10 +139,7 @@ export const chatListTableDao = {
     updateChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.updateChatListTable,
-                [chatListInfo.joinFlg, chatListInfo.userId, chatListInfo.chatId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [chatListInfo.joinFlg, chatListInfo.userId, chatListInfo.chatId]
             );
 
         } catch (e) {
@@ -167,10 +150,7 @@ export const chatListTableDao = {
     deleteChatListInfo: async (chatListInfo) => {
         try {
             await db.run(crudChatListTableQuery.deleteChatListTable,
-                [chatListInfo.userId, chatListInfo.chatId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [chatListInfo.userId, chatListInfo.chatId]
             );
         } catch (e) {
             console.log(e.message);
@@ -182,13 +162,16 @@ export const chatListTableDao = {
 export const chatTableDao = {
     insertChatInfo: async (chatInfo) => {
         try {
-            await db.run(crudChatTableQuery.insertChatTable,
-                [chatInfo.chatId, chatInfo.messageId],
-                // arrow functionだとthisでstatementオブジェクトを参照できない
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+            const result = await db.run(crudChatTableQuery.insertChatTable,
+                [
+                    chatInfo.chatId,
+                    chatInfo.messageId,
+                    chatInfo.userId,
+                    chatInfo.messageBody
+                ]
+                // npmの"sqlite"ではrunはコールバック関数をとらない
             );
+            return result.lastID; 
 
         } catch (e) {
             // スタックトレースにより情報が伝搬しないことを意識
@@ -200,12 +183,15 @@ export const chatTableDao = {
         try {
             const result = [];
             await db.each(crudChatTableQuery.selectChatTable,
-                [chatInfo.chatId],
+                [chatInfo.chatId, chatInfo.id],
                 function (err, rows) {
                     if (!err) {
                         const elem = new ChatInfo();
+                        elem.id = rows.id;
                         elem.chatId = rows.chat_id;
                         elem.messageId = rows.message_id;
+                        elem.userId = rows.user_id;
+                        elem.messageBody = rows.message_body;
                         result.push(elem);
                     } else {
                         throw new Error(err);
@@ -223,10 +209,7 @@ export const chatTableDao = {
     updateChatInfo: async (chatInfo) => {
         try {
             await db.run(crudChatTableQuery.updateChatTable,
-                [chatInfo.messageId, chatInfo.chatId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [chatInfo.messageBody, chatInfo.chatId, chatInfo.messageId]
             );
 
         } catch (e) {
@@ -237,92 +220,7 @@ export const chatTableDao = {
     deleteChatInfo: async (chatInfo) => {
         try {
             await db.run(crudChatTableQuery.deleteChatTable,
-                [chatInfo.chatId, chatInfo.messageId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
-            );
-        } catch (e) {
-            console.log(e.message);
-            throw new Error("somthing wrong!");
-        }
-    }
-};
-
-export const messageTableDao = {
-    insertMessageInfo: async (messageInfo) => {
-        try {
-            await db.run(crudMessageTableQuery.insertMessageTable,
-                [
-                    messageInfo.messageId,
-                    messageInfo.chatId,
-                    messageInfo.userId,
-                    messageInfo.messageBody
-                ],
-                // arrow functionだとthisでstatementオブジェクトを参照できない
-                function (err) {
-                    if (err) throw new Error(err);
-                }
-            );
-
-        } catch (e) {
-            // スタックトレースにより情報が伝搬しないことを意識
-            console.log(e.message);
-            throw new Error("something wrong!");
-        }
-    },
-    selectMessageInfo: async (messageInfo) => {
-        try {
-            const result = [];
-            await db.each(crudMessageTableQuery.selectMessageTable,
-                [messageInfo.messageId],
-                function (err, rows) {
-                    if (!err) {
-                        const elem = new MessageInfo();
-                        elem.messageId = rows.message_id;
-                        elem.messageId = rows.chat_id;
-                        elem.messageId = rows.user_id;
-                        elem.messageId = rows.message_body;
-                        result.push(elem);
-                    } else {
-                        throw new Error(err);
-                    }
-                }
-            );
-
-            return result;
-
-        } catch (e) {
-            console.log(e.message);
-            throw new Error("something wrong!");
-        }
-    },
-    updateMessageInfo: async (messageInfo) => {
-        try {
-            await db.run(crudMessageTableQuery.updateMessageTable,
-                [
-                    messageInfo.chatId,
-                    messageInfo.userId,
-                    messageInfo.messageBody,
-                    messageInfo.messageId
-                ],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
-            );
-
-        } catch (e) {
-            console.log(e.message);
-            throw new Error("something wrong!");
-        }
-    },
-    deleteMessageInfo: async (messageInfo) => {
-        try {
-            await db.run(crudMessageTableQuery.deleteMessageTable,
-                [messageInfo.messageId],
-                function (err) {
-                    if (err) throw new Error(err);
-                }
+                [chatInfo.chatId, chatInfo.messageId]
             );
         } catch (e) {
             console.log(e.message);

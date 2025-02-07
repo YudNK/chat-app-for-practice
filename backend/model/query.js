@@ -24,17 +24,9 @@ export const createTableQuery = {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             chat_id TEXT NOT NULL,
             message_id TEXT NOT NULL,
-            UNIQUE(chat_id, message_id)
-        );
-    `,
-    createMessageTable: `
-        CREATE TABLE IF NOT EXISTS Message (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            message_id TEXT NOT NULL,
-            chat_id TEXT NOT NULL,
             user_id TEXT NOT NULL,
             message_body TEXT,
-            UNIQUE(message_id)
+            UNIQUE(chat_id, message_id)
         );
     `,
 };
@@ -106,6 +98,7 @@ export const crudChatListTableQuery = {
         FROM ChatList
         WHERE
             user_id = ?
+        ORDER BY id
         ;
     `,
     updateChatListTable: `
@@ -133,30 +126,40 @@ export const crudChatTableQuery = {
     insertChatTable: `
         INSERT INTO Chat (
             chat_id,
-            message_id
+            message_id,
+            user_id,
+            message_body
         ) values (
+            ?,
+            ?,
             ?,
             ?
         ); 
     `,
     selectChatTable: `
         SELECT
+            id,
             chat_id,
-            message_id
+            message_id,
+            user_id,
+            message_body
         FROM Chat
         WHERE
             chat_id = ?
+        AND id > ?
+        ORDER BY id
         ;
     `,
     updateChatTable: `
         UPDATE Chat
         SET (
-            message_id
+            message_body
         ) = (
             ?
         )
         WHERE
             chat_id = ?
+        AND message_id = ?
         ;
     `,
     deleteChatTable: `
@@ -164,54 +167,6 @@ export const crudChatTableQuery = {
         WHERE
             chat_id = ?
         AND message_id = ?
-        ;    
-    `
-};
-
-export const crudMessageTableQuery = {
-    insertMessageTable: `
-        INSERT INTO Message (
-            message_id,
-            chat_id,
-            user_id,
-            message_body
-        ) values (
-            ?,
-            ?,
-            ?,
-            ?
-        ); 
-    `,
-    selectMessageTable: `
-        SELECT
-            message_id,
-            chat_id,
-            user_id,
-            message_body
-        FROM Message
-        WHERE
-            message_id = ?
-        ;
-    `,
-    updateMessageTable: `
-        UPDATE Message
-        SET (
-            chat_id,
-            user_id,
-            message_body
-        ) = (
-            ?,
-            ?,
-            ?
-        )
-        WHERE
-            message_id = ?
-        ;
-    `,
-    deleteMessageTable: `
-        DELETE FROM Message
-        WHERE
-            message_id = ?
         ;    
     `
 };
