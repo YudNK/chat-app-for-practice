@@ -21,7 +21,7 @@ export async function createUser(userId, userPassword) {
 
     const userInfoArr = await userTableDao.selectUserInfo(userInfo);
     if (userInfoArr.length == 0) {
-        // regist user
+        // register user
         result = true;
         // set salt
         userInfo.salt = randomUUID();

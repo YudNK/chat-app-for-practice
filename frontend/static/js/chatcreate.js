@@ -51,7 +51,7 @@ function addUser() {
     }
 }
 
-document.getElementById("regist").addEventListener("click", async () => {
+document.getElementById("register").addEventListener("click", async () => {
 
     const value = document.getElementById("chat-name").value;
     if(!value){
@@ -61,7 +61,7 @@ document.getElementById("regist").addEventListener("click", async () => {
     const arr = [...userSet];
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    const request = new Request("/fetch/registchat", {
+    const request = new Request("/fetch/registerchat", {
         method: "POST",
         headers: myHeaders,
         body: JSON.stringify({

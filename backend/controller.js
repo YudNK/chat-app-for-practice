@@ -62,7 +62,7 @@ export function sendSignInPage(req, res, next) {
     }
 }
 
-export async function registUser(req, res, next) {
+export async function registerUser(req, res, next) {
     try {
         const userId = req.body.userId;
         const userPassword = req.body.userPassword;
@@ -136,6 +136,7 @@ export async function sendChatListPage(req, res, next) {
     try {
         const userId = sessionIdMap.get(currentSessionId);
         const chatListInfoArr = await readChatList(userId);
+        res.clearCookie("chatId");
         res.render("chatlist", {
             userId: userId,
             chatList: chatListInfoArr.map(e => {
@@ -217,7 +218,7 @@ export async function searchUser(req, res, next) {
     }
 }
 
-export async function registChat(req, res, next) {
+export async function registerChat(req, res, next) {
     try {
         const currentUserId = sessionIdMap.get(currentSessionId);
         const userIdArr = req.body.userIdArr;
@@ -253,7 +254,7 @@ export async function recoveryMessages(chatId, serverOffset) {
     }
 }
 
-export async function registMessage(msg, sessionId, chatId) {
+export async function registerMessage(msg, sessionId, chatId) {
     const userId = sessionIdMap.get(sessionId);
     try {
         const lastId = await createChatMessage(chatId, userId, msg);

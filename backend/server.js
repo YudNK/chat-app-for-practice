@@ -14,17 +14,17 @@ import {
     configSession,
     authUser,
     sendSignInPage,
-    registUser,
+    registerUser,
     validateUser,
     sendChatPage,
     sendChatListPage,
     joinChat,
     sendCreateChatPage,
-    registChat,
+    registerChat,
     signoutUser,
     searchUser,
     recoveryMessages,
-    registMessage,
+    registerMessage,
     authSocketUser
 } from "./controller.js";
 
@@ -75,7 +75,7 @@ if (cluster.isPrimary) {
 
     // routing
     app.get("/", sendSignInPage, sendChatListPage);
-    app.post("/createuser", registUser, sendChatListPage);
+    app.post("/createuser", registerUser, sendChatListPage);
     app.post("/signin", validateUser, sendChatListPage);
 
     // need athentication route
@@ -87,7 +87,7 @@ if (cluster.isPrimary) {
 
     // for fetch api
     app.get("/fetch/searchuser", authUser, searchUser);
-    app.post("/fetch/registchat", authUser, registChat);
+    app.post("/fetch/registerchat", authUser, registerChat);
 
     // error handling 
     app.use((err, req, res, next) => {
@@ -129,7 +129,7 @@ if (cluster.isPrimary) {
 
         socket.on("chat message", async (msg, callback) => {
             try {
-                const [lastId, userId] = await registMessage(msg, sessionId, chatId);
+                const [lastId, userId] = await registerMessage(msg, sessionId, chatId);
                 // 自分向け
                 socket.emit("chat message", lastId, userId, msg);
                 // 他メンバー向け
